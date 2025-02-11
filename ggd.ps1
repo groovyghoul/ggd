@@ -1,14 +1,31 @@
-# PowerShell Script (ggd.ps1)
-
 # Constants
 $Filename = "$HOME\.ggd_dirs.txt"
+
+# Function to display help
+function Show-Help
+{
+  Write-Host "ggd - Go to Directory"
+  Write-Host "Usage: ggd [a|r|l|c|?]"
+  Write-Host "  a - Add current directory to ggd"
+  Write-Host "  r - Remove directory from ggd"
+  Write-Host "  l - List directories in ggd"
+  Write-Host "  c - Clear all directories from ggd"
+  Write-Host "  ? - Show help"
+  Write-Host "  No arguments - Change directory using fzf"
+}
+
+# Function to clear all directories from .ggd_dirs.txt
+function Clear-GgdDirs
+{
+  Clear-Content $Filename
+}
 
 # Function to Add Directory
 function Add-GgdDir
 {
   param([string]$Dir)
   # Check if exists
-  if ((Get-Content $Filename | Where-Object { $_.Trim() -eq $Dir.Trim() }) -eq $null)
+  if ($null -eq (Get-Content $Filename | Where-Object { $_.Trim() -eq $Dir.Trim() }))
   {
     $Dir | Out-File -FilePath $Filename -Append -Encoding UTF8
   }
@@ -24,7 +41,7 @@ function Remove-GgdDir
 }
 
 # Function to List Directories (Basic)
-function List-GgdDirs
+function Get-GgdDirs
 {
   $dirs = @()  # Create an empty array
   Get-Content $Filename | ForEach-Object {
@@ -38,7 +55,7 @@ function List-GgdDirs
 }
 
 # Function to Change Directory
-function Change-GgdDir
+function Set-GgdDir
 {
   param([string]$Dir)
   Set-Location $Dir
@@ -53,82 +70,68 @@ if ($args[0] -eq "a")
   Add-GgdDir -Dir $CurrentDir
   Write-Host "Added $CurrentDir to ggd."
 }
-# 'ggd r' (Remove) - Basic example using Read-Host, but a GUI would be better here.
+# 'ggd r' (Remove) - use fzf
 elseif ($args[0] -eq "r")
 {
-  $Directories = List-GgdDirs
-  # Write-Host "DEBUG (ggd r): \$Directories = $($Directories)"
-  # Write-Host "DEBUG (ggd r): \$Directories is array: $($Directories -is [array])"
-  # Write-Host "DEBUG (ggd r): \$Directories.Count = $($Directories.Count)"
-
+  $Directories = Get-GgdDirs
   if (($Directories -is [array] -and $Directories.Count -gt 0) -or
         ($Directories -is [string] -and $Directories.Length -gt 0))
   {
-    Write-Host "Directories:"
-    # Handle the case where $Directories is a string (single directory)
-    if ($Directories -is [string])
+
+    # Use fzf to select a directory
+    $selectedDir = $Directories | fzf --color="fg:#d0d0d0,bg:#303030,hl:#5f87af" --prompt="Select directory: > "
+
+    if ($selectedDir)
     {
-      Write-Host "1: $($Directories)"
-      $Choice = Read-Host "Enter number to remove"
-      if ($Choice -eq "1")
-      {
-        Remove-GgdDir -Dir $Directories
-      }
-    }
-    # Handle the case where $Directories is an array
-    else
-    {
-      for ($i = 0; $i -lt $Directories.Count; $i++)
-      {
-        Write-Host "$($i+1): $($Directories[$i])"
-      }
-      $Choice = Read-Host "Enter number to remove"
-      if ($Choice -match "^\d+$" -and $Choice -ge 1 -and $Choice -le $Directories.Count)
-      {
-        Remove-GgdDir -Dir $Directories[$Choice-1]
-      }
+      Remove-GgdDir -Dir $selectedDir
+      Write-Host "Removed $selectedDir"
     }
   } else
   {
     Write-Host "No directories in ggd."
   }
-
 }
-# No Args (List and Change) - A more advanced menu/GUI would be appropriate here
-else
+# 'ggd l' (List)
+elseif ($args[0] -eq "l")
 {
-  $Directories = List-GgdDirs
-  # Write-Host "DEBUG (ggd): \$Directories = $($Directories)"
-  # Write-Host "DEBUG (ggd): \$Directories is array: $($Directories -is [array])"
-  # Write-Host "DEBUG (ggd): \$Directories.Count = $($Directories.Count)"
-
+  $Directories = Get-GgdDirs
   if (($Directories -is [array] -and $Directories.Count -gt 0) -or
         ($Directories -is [string] -and $Directories.Length -gt 0))
   {
-    Write-Host "Directories:"
-
-    # Handle the case where $Directories is a string (single directory)
-    if ($Directories -is [string])
+    foreach ($dir in $Directories)
     {
-      Write-Host "1: $($Directories)"
-      $Choice = Read-Host "Enter number to change to"
-      if ($Choice -eq "1")
-      {
-        Change-GgdDir -Dir $Directories
-      }
+      Write-Output $dir
     }
-    # Handle the case where $Directories is an array
-    else
+  } else 
+  {
+    Write-Host "No directories in ggd."
+  }
+}
+# 'ggd c' (clear)
+elseif ($args[0] -eq "c")
+{
+  Clear-GgdDirs
+  Write-Host "Cleared all directories from ggd."
+}
+# 'ggd ?' (help)
+elseif ($args[0] -eq "?")
+{
+  Show-Help
+}
+# No Args (List and Change) - use fzf
+else
+{
+  $Directories = Get-GgdDirs
+  if (($Directories -is [array] -and $Directories.Count -gt 0) -or
+        ($Directories -is [string] -and $Directories.Length -gt 0))
+  {
+
+    # Use fzf to select a directory
+    $selectedDir = $Directories | fzf --color="fg:#d0d0d0,bg:#303030,hl:#5f87af" --prompt="Select directory: > "
+
+    if ($selectedDir)
     {
-      for ($i = 0; $i -lt $Directories.Count; $i++)
-      {
-        Write-Host "$($i+1): $($Directories[$i])"
-      }
-      $Choice = Read-Host "Enter number to change to"
-      if ($Choice -match "^\d+$" -and $Choice -ge 1 -and $Choice -le $Directories.Count)
-      {
-        Change-GgdDir -Dir $Directories[$Choice-1]
-      }
+      Set-GgdDir -Dir $selectedDir
     }
   } else
   {
