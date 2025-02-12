@@ -7,7 +7,7 @@ A PowerShell script for quickly navigating to frequently used directories.
 
 ## Overview
 
-`ggd` (Go Go Directory) is a simple yet powerful PowerShell script that helps you quickly access your favorite directories. It stores a list of frequently used directories in a text file and provides commands to add, remove, navigate to, list, and clear these directories, using `fzf` for fuzzy searching and easy selection.
+`ggd` (Go Go Directory) is a simple PowerShell script that helps you quickly access your favorite directories. It stores a list of frequently used directories in a text file and provides commands to add, remove, navigate to, list, and clear these directories, using `fzf` for fuzzy searching and easy selection.
 
 ## Features
 
@@ -21,7 +21,7 @@ A PowerShell script for quickly navigating to frequently used directories.
 
 ## Prerequisites
 
-*   **PowerShell 5.1 or later:**  `ggd` is written in PowerShell and requires PowerShell 5.1 or later to function correctly.
+*   **PowerShell 5.1 or later:**  `ggd` is written in PowerShell and requires PowerShell 5.1.
 *   **`fzf` (Fuzzy Finder):** `ggd` relies on `fzf` for interactive directory selection.  You must have `fzf` installed and in your system's `PATH`.
 
     *   **Windows:**
@@ -103,7 +103,7 @@ Contributions are welcome! Please feel free to submit pull requests or create is
 
 ## Author
 
-groovyghoul (Richard O'Neil)
+[groovyghoul](https://github.com/groovyghoul) (Richard O'Neil)
 
 ## Acknowledgments
 
